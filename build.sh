@@ -2,7 +2,8 @@
 # Builds "Preflop Coach.app" with plain swiftc (works with the Command Line Tools alone).
 #   ./build.sh            build into ./build
 #   ./build.sh install    also copy to /Applications and launch it
-#   ./build.sh release    also package build/Preflop Coach.zip for a GitHub release
+#   ./build.sh release    also package build/Preflop-Coach.zip, notarized when credentials exist
+#                         (NOTARY_ISSUER=<App Store Connect issuer id> ./build.sh release)
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -53,11 +54,16 @@ cat > "$APP/Contents/Info.plist" <<'EOF'
 </plist>
 EOF
 
-# A local self-signed certificate keeps the app's identity stable across rebuilds, so
-# macOS doesn't forget the Screen Recording permission every time. Ad hoc otherwise.
-IDENTITY="Preflop Coach Local Signing"
-if security find-certificate -c "$IDENTITY" >/dev/null 2>&1; then
-    codesign --force --sign "$IDENTITY" "$APP"
+# Signing, best available first:
+#  1. Developer ID + hardened runtime + timestamp, which notarization requires
+#  2. a local self-signed certificate, which keeps the Screen Recording grant across rebuilds
+#  3. ad hoc
+DEVELOPER_ID="$(security find-identity -v -p codesigning 2>/dev/null | grep -o '"Developer ID Application: [^"]*"' | head -1 | tr -d '"')"
+LOCAL_ID="Preflop Coach Local Signing"
+if [[ -n "$DEVELOPER_ID" ]]; then
+    codesign --force --options runtime --timestamp --sign "$DEVELOPER_ID" "$APP"
+elif security find-certificate -c "$LOCAL_ID" >/dev/null 2>&1; then
+    codesign --force --sign "$LOCAL_ID" "$APP"
 else
     codesign --force --sign - "$APP"
 fi
@@ -72,8 +78,23 @@ if [[ "${1:-}" == "install" ]]; then
 fi
 
 if [[ "${1:-}" == "release" ]]; then
-    # A zip that keeps the bundle intact, ready to attach to a GitHub release.
-    rm -f "build/Preflop-Coach.zip"
-    ditto -c -k --keepParent "$APP" "build/Preflop-Coach.zip"
-    echo "Packaged build/Preflop-Coach.zip"
+    ZIP="build/Preflop-Coach.zip"
+    rm -f "$ZIP"
+    ditto -c -k --keepParent "$APP" "$ZIP"
+
+    # Notarize when an App Store Connect API key is available (AuthKey_<KEYID>.p8 next to
+    # the app's data, issuer id in NOTARY_ISSUER). Without it the zip still works, but
+    # macOS shows the "could not verify" warning on first open.
+    KEYFILE="$(ls "$HOME/Library/Application Support/PreflopCoach"/AuthKey_*.p8 2>/dev/null | head -1 || true)"
+    if [[ -n "$DEVELOPER_ID" && -n "$KEYFILE" && -n "${NOTARY_ISSUER:-}" ]]; then
+        KEYID="$(basename "$KEYFILE" .p8)"; KEYID="${KEYID#AuthKey_}"
+        echo "Notarizing…"
+        xcrun notarytool submit "$ZIP" --key "$KEYFILE" --key-id "$KEYID" --issuer "$NOTARY_ISSUER" --wait
+        xcrun stapler staple "$APP"
+        rm -f "$ZIP"
+        ditto -c -k --keepParent "$APP" "$ZIP"
+    else
+        echo "Skipping notarization (needs a Developer ID identity, an AuthKey_*.p8 and NOTARY_ISSUER)."
+    fi
+    echo "Packaged $ZIP"
 fi

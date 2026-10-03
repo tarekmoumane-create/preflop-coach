@@ -23,14 +23,8 @@ The chart is the decision maker; the model only reads the screen.
 [latest release](https://github.com/tarekmoumane-create/preflop-coach/releases/latest),
 unzip it, and drag **Preflop Coach** into your Applications folder.
 
-The app isn't notarized with Apple (that needs a paid developer account), so the first
-time you open it macOS will say it "could not verify" the app. To get past that:
-
-1. Double-click the app once; dismiss the warning.
-2. Open **System Settings → Privacy & Security**, scroll down, and click **Open Anyway**
-   next to the Preflop Coach message. Confirm.
-
-Or, from Terminal: `xattr -dr com.apple.quarantine "/Applications/Preflop Coach.app"`.
+The release is signed with a Developer ID and notarized by Apple, so it opens without
+warnings.
 
 **Build it yourself** instead (macOS 13+, Xcode Command Line Tools via `xcode-select --install`):
 
@@ -90,6 +84,9 @@ Sources/corecheck      self-checks for the core (run by build.sh)
 build.sh               builds with plain swiftc, no Xcode project needed
 ```
 
-`build.sh` signs with a local certificate named "Preflop Coach Local Signing" if one
-exists in your keychain, so macOS keeps the Screen Recording permission across rebuilds;
-otherwise it signs ad hoc and you may need to re-grant the permission after updating.
+`build.sh` signs with a Developer ID certificate when one is in the keychain, otherwise
+with a local certificate named "Preflop Coach Local Signing" if present, otherwise ad hoc.
+Any stable certificate keeps the Screen Recording permission across rebuilds; with ad hoc
+signing you may need to re-grant it after updating. `NOTARY_ISSUER=<issuer id>
+./build.sh release` notarizes the zip when an App Store Connect key (`AuthKey_*.p8`) is
+in `~/Library/Application Support/PreflopCoach/`.
