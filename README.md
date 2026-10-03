@@ -19,7 +19,7 @@ The chart is the decision maker; the model only reads the screen.
 
 ## Install
 
-**Download:** grab `Preflop.Coach.zip` from the
+**Download:** grab `Preflop-Coach.zip` from the
 [latest release](https://github.com/tarekmoumane-create/preflop-coach/releases/latest),
 unzip it, and drag **Preflop Coach** into your Applications folder.
 

@@ -73,7 +73,7 @@ fi
 
 if [[ "${1:-}" == "release" ]]; then
     # A zip that keeps the bundle intact, ready to attach to a GitHub release.
-    rm -f "build/Preflop Coach.zip"
-    ditto -c -k --keepParent "$APP" "build/Preflop Coach.zip"
-    echo "Packaged build/Preflop Coach.zip"
+    rm -f "build/Preflop-Coach.zip"
+    ditto -c -k --keepParent "$APP" "build/Preflop-Coach.zip"
+    echo "Packaged build/Preflop-Coach.zip"
 fi
