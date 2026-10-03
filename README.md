@@ -17,18 +17,38 @@ assistance and will close your account for it, so don't use it there.
 
 The chart is the decision maker; the model only reads the screen.
 
-## Setup
+## Install
 
-Requires macOS 13 or later and Xcode Command Line Tools (`xcode-select --install`).
+**Download:** grab `Preflop.Coach.zip` from the
+[latest release](https://github.com/tarekmoumane-create/preflop-coach/releases/latest),
+unzip it, and drag **Preflop Coach** into your Applications folder.
+
+The app isn't notarized with Apple (that needs a paid developer account), so the first
+time you open it macOS will say it "could not verify" the app. To get past that:
+
+1. Double-click the app once; dismiss the warning.
+2. Open **System Settings → Privacy & Security**, scroll down, and click **Open Anyway**
+   next to the Preflop Coach message. Confirm.
+
+Or, from Terminal: `xattr -dr com.apple.quarantine "/Applications/Preflop Coach.app"`.
+
+**Build it yourself** instead (macOS 13+, Xcode Command Line Tools via `xcode-select --install`):
 
 ```bash
 ./build.sh install     # builds, copies to /Applications, launches
 ```
 
-Then click ♠︎ in the menu bar:
+## Setup
 
-- **Turn On** – asks for an Anthropic API key (console.anthropic.com) and for Screen
-  Recording permission. After granting the permission, quit and reopen the app.
+You need your own Anthropic API key (console.anthropic.com → API Keys). Every read is
+billed to it; see Cost below.
+
+Click ♠︎ in the menu bar:
+
+- **Turn On** – asks for the API key and for Screen Recording permission. After
+  switching the permission on in System Settings, quit and reopen the app, then Turn On
+  again. If the ♠︎ doesn't appear, your menu bar may be full: hold ⌘ and drag an icon
+  you don't need off the bar to make room.
 - **Watch** – pick the poker app or browser. One window is more accurate and cheaper
   than the whole screen.
 - **Check** – how often to look (every 2–10 s) or only when you press ⌃⌥P.

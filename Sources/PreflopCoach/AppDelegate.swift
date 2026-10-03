@@ -394,7 +394,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         alert.window.initialFirstResponder = field
         NSApp.activate(ignoringOtherApps: true)
         guard alert.runModal() == .alertFirstButtonReturn else { return false }
-        let key = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        // People paste keys with prompts, quotes or labels around them; keep just the key.
+        var key = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let range = key.range(of: "sk-ant-[A-Za-z0-9_-]+", options: .regularExpression) { key = String(key[range]) }
         guard !key.isEmpty else { return false }
         if !APIKeyStore.save(key) {
             warn("Couldn't save the key", "The keychain refused the item.")
